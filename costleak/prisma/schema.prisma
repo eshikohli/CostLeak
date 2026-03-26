@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  analyses  Analysis[]
+}
+
+model Analysis {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id])
+  description      String
+  apiCategory      String   @default("General")
+  summary          String
+  createdAt        DateTime @default(now())
+  recommendations  SavedRecommendation[]
+}
+
+model SavedRecommendation {
+  id              String   @id @default(cuid())
+  analysisId      String
+  analysis        Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  issue           String
+  recommendedFix  String
+  expectedImpact  String
+  saved           Boolean  @default(false)
+  createdAt       DateTime @default(now())
+}

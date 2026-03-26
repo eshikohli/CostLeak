@@ -1,0 +1,123 @@
+'use client'
+
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+
+interface SavedItem {
+  id: string
+  issue: string
+  recommendedFix: string
+  expectedImpact: string
+  createdAt: Date | string
+  analysis: {
+    description: string
+    apiCategory: string
+  }
+}
+
+export default function LibraryClient({
+  userEmail,
+  saved,
+}: {
+  userEmail: string
+  saved: SavedItem[]
+}) {
+  const router = useRouter()
+
+  async function handleLogout() {
+    await fetch('/api/auth/logout', { method: 'POST' })
+    router.push('/')
+    router.refresh()
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <nav className="bg-white border-b border-gray-100 px-6 py-4">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <span className="font-bold text-xl text-gray-900">CostLeak</span>
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard" className="text-sm text-gray-600 hover:text-gray-900">
+              Analyze
+            </Link>
+            <span className="text-sm text-gray-400">{userEmail}</span>
+            <button
+              onClick={handleLogout}
+              className="text-sm text-gray-600 hover:text-gray-900"
+            >
+              Log out
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <main className="max-w-4xl mx-auto px-6 py-10">
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-1">My Library</h1>
+            <p className="text-gray-500">
+              {saved.length === 0
+                ? 'No saved recommendations yet.'
+                : `${saved.length} saved recommendation${saved.length !== 1 ? 's' : ''}`}
+            </p>
+          </div>
+          <Link
+            href="/dashboard"
+            className="text-sm bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+          >
+            New analysis
+          </Link>
+        </div>
+
+        {saved.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center shadow-sm">
+            <p className="text-gray-400 mb-4">No saved recommendations yet.</p>
+            <Link href="/dashboard" className="text-sm text-gray-900 underline">
+              Analyze your API usage to get started
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {saved.map((item) => (
+              <div key={item.id} className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-1 rounded">
+                    {item.analysis.apiCategory}
+                  </span>
+                  <span className="text-xs text-gray-400">
+                    {new Date(item.createdAt).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </span>
+                </div>
+
+                <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                  <p className="text-xs font-medium text-gray-500 mb-1">Original scenario</p>
+                  <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">
+                    {item.analysis.description}
+                  </p>
+                </div>
+
+                <h3 className="font-semibold text-gray-900 mb-3">{item.issue}</h3>
+
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Recommended Fix</p>
+                    <p className="text-sm text-gray-700 leading-relaxed">{item.recommendedFix}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Expected Impact</p>
+                    <p className="text-sm text-green-700 bg-green-50 px-3 py-2 rounded-lg leading-relaxed">
+                      {item.expectedImpact}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </main>
+    </div>
+  )
+}
