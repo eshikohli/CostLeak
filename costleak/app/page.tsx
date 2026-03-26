@@ -23,21 +23,18 @@ export default async function LandingPage() {
 
       {/* Hero */}
       <main className="max-w-3xl mx-auto px-6 pt-20 pb-16 text-center">
-        <div className="inline-block bg-amber-50 text-amber-700 text-sm font-medium px-3 py-1 rounded-full mb-6 border border-amber-200">
-          Built for early-stage builders
-        </div>
         <h1 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
           Stop bleeding money on<br />unnecessary API calls
         </h1>
         <p className="text-xl text-gray-500 mb-10 leading-relaxed">
-          CostLeak analyzes how you&apos;re using APIs and gives you 2–3 specific,
-          actionable fixes to reduce overuse — before your bill surprises you.
+          CostLeak analyzes how you&apos;re using APIs and gives you 2 to 3 specific,
+          actionable fixes to reduce overuse before your bill surprises you.
         </p>
         <Link
           href="/signup"
           className="inline-block bg-gray-900 text-white px-8 py-4 rounded-xl text-lg font-medium hover:bg-gray-700 transition-colors"
         >
-          Analyze my API usage — it&apos;s free
+          Get Started
         </Link>
 
         {/* Steps */}
@@ -69,31 +66,10 @@ export default async function LandingPage() {
           ))}
         </div>
 
-        {/* Problem callout */}
-        <div className="mt-16 p-8 bg-gray-50 rounded-2xl text-left">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Common patterns CostLeak catches
-          </h2>
-          <ul className="space-y-2 text-gray-600">
-            {[
-              'Calling an LLM API on every keystroke instead of debouncing',
-              'Geocoding the same address repeatedly instead of caching',
-              'Fetching full datasets on every page load',
-              'Sending identical prompts without caching responses',
-              'Polling an API every second when every minute is enough',
-              'Over-fetching fields you never display',
-            ].map((item) => (
-              <li key={item} className="flex items-start gap-2">
-                <span className="text-red-400 mt-1">•</span>
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
       </main>
 
       <footer className="border-t border-gray-100 py-6 text-center text-sm text-gray-400">
-        CostLeak — Built for builders who want to ship without surprise bills
+        CostLeak: Built for builders who want to ship without surprise bills
       </footer>
     </div>
   )

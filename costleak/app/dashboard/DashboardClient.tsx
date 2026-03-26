@@ -121,7 +121,7 @@ export default function DashboardClient({ userEmail }: { userEmail: string }) {
                 <select
                   value={apiCategory}
                   onChange={(e) => setApiCategory(e.target.value)}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
                 >
                   <option value="OpenAI">OpenAI</option>
                   <option value="Google Maps">Google Maps</option>
@@ -138,7 +138,7 @@ export default function DashboardClient({ userEmail }: { userEmail: string }) {
                   onChange={(e) => setDescription(e.target.value)}
                   rows={6}
                   required
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
                   placeholder="e.g. My app calls the OpenAI API every time a user types a character in the search box. Users often type full sentences before stopping..."
                 />
               </div>
