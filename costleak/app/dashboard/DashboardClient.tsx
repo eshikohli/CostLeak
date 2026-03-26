@@ -14,6 +14,7 @@ interface Recommendation {
   estimatedAfterCost: string
   estimatedSavings: string
   estimationNote: string
+  alternativeOption: string
   saved: boolean
 }
 
@@ -265,6 +266,12 @@ export default function DashboardClient({ userEmail }: { userEmail: string }) {
                         <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Expected Impact</p>
                         <p className="text-sm text-green-700 bg-green-50 px-3 py-2 rounded-lg leading-relaxed">{rec.expectedImpact}</p>
                       </div>
+                      {rec.alternativeOption && (
+                        <div>
+                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Alternative Option</p>
+                          <p className="text-sm text-blue-700 bg-blue-50 px-3 py-2 rounded-lg leading-relaxed">{rec.alternativeOption}</p>
+                        </div>
+                      )}
                       {rec.estimatedBeforeCost && (
                         <div className="border border-gray-100 rounded-xl p-4 mt-1">
                           <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Estimated Cost Impact</p>

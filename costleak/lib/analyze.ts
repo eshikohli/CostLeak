@@ -11,6 +11,7 @@ export interface Recommendation {
   estimatedAfterCost: string
   estimatedSavings: string
   estimationNote: string
+  alternativeOption: string
 }
 
 export interface AnalysisResult {
@@ -46,10 +47,22 @@ Return ONLY a JSON object with this exact shape:
       "estimatedBeforeCost": "Estimated monthly cost before the fix, e.g. '$80/mo'",
       "estimatedAfterCost": "Estimated monthly cost after the fix, e.g. '$8/mo'",
       "estimatedSavings": "Potential savings phrase, e.g. 'Save about $72/mo'",
-      "estimationNote": "One sentence clarifying these are directional estimates based on the described usage pattern"
+      "estimationNote": "One sentence clarifying these are directional estimates based on the described usage pattern",
+      "alternativeOption": "Optional: only include this field when a genuinely cheaper or more appropriate alternative exists for this specific pattern. Leave it out or use an empty string if no clear alternative applies."
     }
   ]
 }
+
+Guidelines for alternativeOption:
+- Only include it when there is a concrete, realistic alternative that fits the scenario
+- Do NOT add it to every recommendation — most recommendations should not need it
+- Good cases to include it: using a large LLM for simple classification/formatting (suggest a smaller model), repeated full generation where embeddings or caching could replace it, a heavy endpoint where a lighter one exists
+- Keep it to one short sentence. Examples:
+  - "Consider gpt-4o-mini instead of gpt-4o for simple classification or summarization — it costs roughly 15x less per token."
+  - "Consider using OpenAI embeddings with a vector store for repeated lookups rather than regenerating answers each time."
+  - "Consider caching geocoding results locally instead of calling the Maps API on every request."
+- Avoid vague suggestions like "use a cheaper API" — be specific about what and why
+- Do not make strong guarantees about pricing or claim one provider is always better
 
 For riskLevel, choose exactly one of: "Low", "Medium", or "High".
 - High: repeated real-time calls with no caching, every-keystroke triggering, very frequent polling, identical requests sent repeatedly at scale
@@ -189,13 +202,48 @@ function heuristicRisk(description: string): { riskLevel: RiskLevel; riskReason:
   }
 }
 
+function heuristicAlternative(description: string, apiCategory: string): string {
+  const text = description.toLowerCase()
+
+  const isHighFreqLLM =
+    (apiCategory === 'OpenAI') &&
+    /keystroke|every key|every char|each character|on every|every (request|call|input)/.test(text)
+  const isRepeatedLLMCalls =
+    (apiCategory === 'OpenAI') &&
+    /same (prompt|question|query)|identical (prompt|request)|repeated.{0,30}(prompt|llm|openai|gpt)|faq|common question/.test(text)
+  const isExpensiveModelHint =
+    (apiCategory === 'OpenAI') &&
+    /classif|label|format|extract|simple (task|question|answer)|short (answer|response)|yes.no|true.false/.test(text)
+  const isRepeatedGeocode =
+    (apiCategory === 'Google Maps') &&
+    /same (address|location|place)|repeated|every (time|visit|request)/.test(text)
+
+  if (isHighFreqLLM) {
+    return 'Consider gpt-4o-mini instead of a larger model for real-time or high-frequency calls — it costs significantly less per token and responds faster.'
+  }
+  if (isRepeatedLLMCalls) {
+    return 'Consider using OpenAI embeddings with a vector store to match questions to pre-generated answers, rather than regenerating a response on every call.'
+  }
+  if (isExpensiveModelHint) {
+    return 'For simple classification, labeling, or formatting tasks, gpt-4o-mini is often sufficient and costs roughly 15x less per token than gpt-4o.'
+  }
+  if (isRepeatedGeocode) {
+    return 'Consider caching geocoding results in your database after the first lookup, so repeat requests for the same address skip the API entirely.'
+  }
+
+  return ''
+}
+
 function applyEstimateFallbacks(
   recommendations: Partial<Recommendation>[],
-  description: string
+  description: string,
+  apiCategory: string
 ): Recommendation[] {
-  return recommendations.map((r) => {
+  const alternativeFallback = heuristicAlternative(description, apiCategory)
+  return recommendations.map((r, i) => {
     const issue = r.issue ?? ''
     const fallback = heuristicEstimate(description, issue)
+    const llmAlternative = r.alternativeOption?.trim() || ''
     return {
       issue,
       recommendedFix: r.recommendedFix ?? '',
@@ -204,6 +252,8 @@ function applyEstimateFallbacks(
       estimatedAfterCost: r.estimatedAfterCost?.trim() || fallback.estimatedAfterCost,
       estimatedSavings: r.estimatedSavings?.trim() || fallback.estimatedSavings,
       estimationNote: r.estimationNote?.trim() || fallback.estimationNote,
+      // Apply heuristic fallback only on the first rec if LLM didn't provide any
+      alternativeOption: llmAlternative || (i === 0 ? alternativeFallback : ''),
     }
   })
 }
@@ -259,6 +309,6 @@ Please analyze this and return your structured recommendations as JSON.`
     summary: raw.summary,
     riskLevel: llmRiskLevel ?? fallbackRisk.riskLevel,
     riskReason: raw.riskReason?.trim() || fallbackRisk.riskReason,
-    recommendations: applyEstimateFallbacks(raw.recommendations ?? [], description),
+    recommendations: applyEstimateFallbacks(raw.recommendations ?? [], description, apiCategory),
   }
 }

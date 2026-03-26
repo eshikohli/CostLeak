@@ -39,6 +39,7 @@ model SavedRecommendation {
   estimatedAfterCost   String   @default("")
   estimatedSavings     String   @default("")
   estimationNote       String   @default("")
+  alternativeOption    String   @default("")
   saved                Boolean  @default(false)
   createdAt            DateTime @default(now())
 }

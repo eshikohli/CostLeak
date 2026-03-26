@@ -12,6 +12,7 @@ interface SavedItem {
   estimatedAfterCost: string
   estimatedSavings: string
   estimationNote: string
+  alternativeOption: string
   createdAt: Date | string
   analysis: {
     description: string
@@ -126,6 +127,14 @@ export default function LibraryClient({
                       {item.expectedImpact}
                     </p>
                   </div>
+                  {item.alternativeOption && (
+                    <div>
+                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Alternative Option</p>
+                      <p className="text-sm text-blue-700 bg-blue-50 px-3 py-2 rounded-lg leading-relaxed">
+                        {item.alternativeOption}
+                      </p>
+                    </div>
+                  )}
                   {item.estimatedBeforeCost && (
                     <div className="border border-gray-100 rounded-xl p-4">
                       <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Estimated Cost Impact</p>

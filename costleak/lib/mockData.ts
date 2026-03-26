@@ -50,6 +50,7 @@ export const MOCK_RECOMMENDATIONS = {
       estimatedAfterCost: "$8/mo",
       estimatedSavings: "Save about $82/mo",
       estimationNote: "Directional estimate based on high-frequency call patterns. Actual savings depend on user count and average session length.",
+      alternativeOption: "Consider gpt-4o-mini instead of a larger model for real-time or high-frequency calls — it costs significantly less per token and responds faster.",
     },
     {
       issue: "Same data fetched repeatedly without caching",
@@ -59,6 +60,7 @@ export const MOCK_RECOMMENDATIONS = {
       estimatedAfterCost: "$8/mo",
       estimatedSavings: "Save about $52/mo",
       estimationNote: "Directional estimate based on repeated identical requests. Savings scale with how often the same inputs recur.",
+      alternativeOption: "Consider using OpenAI embeddings with a vector store to match questions to pre-generated answers, rather than regenerating a response on every call.",
     },
     {
       issue: "No request deduplication for concurrent identical calls",
@@ -68,6 +70,7 @@ export const MOCK_RECOMMENDATIONS = {
       estimatedAfterCost: "$14/mo",
       estimatedSavings: "Save about $26/mo",
       estimationNote: "Directional estimate based on the described usage pattern. Actual costs vary with usage volume.",
+      alternativeOption: "",
     },
   ],
 }

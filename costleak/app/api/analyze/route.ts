@@ -33,6 +33,7 @@ export async function POST(req: NextRequest) {
           estimatedAfterCost: r.estimatedAfterCost,
           estimatedSavings: r.estimatedSavings,
           estimationNote: r.estimationNote,
+          alternativeOption: r.alternativeOption,
         })),
       },
     },
