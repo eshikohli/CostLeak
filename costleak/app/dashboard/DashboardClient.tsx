@@ -10,6 +10,10 @@ interface Recommendation {
   issue: string
   recommendedFix: string
   expectedImpact: string
+  estimatedBeforeCost: string
+  estimatedAfterCost: string
+  estimatedSavings: string
+  estimationNote: string
   saved: boolean
 }
 
@@ -230,6 +234,28 @@ export default function DashboardClient({ userEmail }: { userEmail: string }) {
                         <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Expected Impact</p>
                         <p className="text-sm text-green-700 bg-green-50 px-3 py-2 rounded-lg leading-relaxed">{rec.expectedImpact}</p>
                       </div>
+                      {rec.estimatedBeforeCost && (
+                        <div className="border border-gray-100 rounded-xl p-4 mt-1">
+                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Estimated Cost Impact</p>
+                          <div className="grid grid-cols-3 gap-3 mb-3">
+                            <div className="text-center">
+                              <p className="text-xs text-gray-400 mb-1">Before</p>
+                              <p className="text-base font-semibold text-red-500">{rec.estimatedBeforeCost}</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-xs text-gray-400 mb-1">After</p>
+                              <p className="text-base font-semibold text-green-600">{rec.estimatedAfterCost}</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-xs text-gray-400 mb-1">Potential Savings</p>
+                              <p className="text-base font-semibold text-gray-900">{rec.estimatedSavings}</p>
+                            </div>
+                          </div>
+                          {rec.estimationNote && (
+                            <p className="text-xs text-gray-400 italic">{rec.estimationNote}</p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )

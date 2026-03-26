@@ -8,6 +8,10 @@ interface SavedItem {
   issue: string
   recommendedFix: string
   expectedImpact: string
+  estimatedBeforeCost: string
+  estimatedAfterCost: string
+  estimatedSavings: string
+  estimationNote: string
   createdAt: Date | string
   analysis: {
     description: string
@@ -112,6 +116,28 @@ export default function LibraryClient({
                       {item.expectedImpact}
                     </p>
                   </div>
+                  {item.estimatedBeforeCost && (
+                    <div className="border border-gray-100 rounded-xl p-4">
+                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Estimated Cost Impact</p>
+                      <div className="grid grid-cols-3 gap-3 mb-3">
+                        <div className="text-center">
+                          <p className="text-xs text-gray-400 mb-1">Before</p>
+                          <p className="text-base font-semibold text-red-500">{item.estimatedBeforeCost}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs text-gray-400 mb-1">After</p>
+                          <p className="text-base font-semibold text-green-600">{item.estimatedAfterCost}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs text-gray-400 mb-1">Potential Savings</p>
+                          <p className="text-base font-semibold text-gray-900">{item.estimatedSavings}</p>
+                        </div>
+                      </div>
+                      {item.estimationNote && (
+                        <p className="text-xs text-gray-400 italic">{item.estimationNote}</p>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

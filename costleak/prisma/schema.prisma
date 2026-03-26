@@ -27,12 +27,16 @@ model Analysis {
 }
 
 model SavedRecommendation {
-  id              String   @id @default(cuid())
-  analysisId      String
-  analysis        Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
-  issue           String
-  recommendedFix  String
-  expectedImpact  String
-  saved           Boolean  @default(false)
-  createdAt       DateTime @default(now())
+  id                   String   @id @default(cuid())
+  analysisId           String
+  analysis             Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  issue                String
+  recommendedFix       String
+  expectedImpact       String
+  estimatedBeforeCost  String   @default("")
+  estimatedAfterCost   String   @default("")
+  estimatedSavings     String   @default("")
+  estimationNote       String   @default("")
+  saved                Boolean  @default(false)
+  createdAt            DateTime @default(now())
 }
