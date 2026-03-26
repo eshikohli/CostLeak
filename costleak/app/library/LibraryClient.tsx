@@ -16,6 +16,7 @@ interface SavedItem {
   analysis: {
     description: string
     apiCategory: string
+    riskLevel: string
   }
 }
 
@@ -86,6 +87,15 @@ export default function LibraryClient({
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-1 rounded">
                     {item.analysis.apiCategory}
+                  </span>
+                  <span className={`text-xs font-medium px-2 py-1 rounded ${
+                    item.analysis.riskLevel === 'High'
+                      ? 'bg-red-100 text-red-600'
+                      : item.analysis.riskLevel === 'Medium'
+                      ? 'bg-amber-100 text-amber-600'
+                      : 'bg-green-100 text-green-600'
+                  }`}>
+                    {item.analysis.riskLevel} Risk
                   </span>
                   <span className="text-xs text-gray-400">
                     {new Date(item.createdAt).toLocaleDateString('en-US', {

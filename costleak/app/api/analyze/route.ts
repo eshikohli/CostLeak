@@ -22,6 +22,8 @@ export async function POST(req: NextRequest) {
       description,
       apiCategory: apiCategory || 'General',
       summary: result.summary,
+      riskLevel: result.riskLevel,
+      riskReason: result.riskReason,
       recommendations: {
         create: result.recommendations.map((r) => ({
           issue: r.issue,

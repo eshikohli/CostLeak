@@ -20,6 +20,8 @@ interface Recommendation {
 interface Analysis {
   id: string
   summary: string
+  riskLevel: string
+  riskReason: string
   recommendations: Recommendation[]
 }
 
@@ -195,9 +197,38 @@ export default function DashboardClient({ userEmail }: { userEmail: string }) {
 
         {analysis && !loading && (
           <div className="mt-8">
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
-              <p className="text-sm font-medium text-amber-800 mb-1">Summary</p>
-              <p className="text-amber-700 text-sm">{analysis.summary}</p>
+            {/* Risk indicator */}
+            <div className={`rounded-xl p-4 mb-4 border ${
+              analysis.riskLevel === 'High'
+                ? 'bg-red-50 border-red-200'
+                : analysis.riskLevel === 'Medium'
+                ? 'bg-amber-50 border-amber-200'
+                : 'bg-green-50 border-green-200'
+            }`}>
+              <div className="flex items-center gap-2 mb-1">
+                <span className={`text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full ${
+                  analysis.riskLevel === 'High'
+                    ? 'bg-red-100 text-red-700'
+                    : analysis.riskLevel === 'Medium'
+                    ? 'bg-amber-100 text-amber-700'
+                    : 'bg-green-100 text-green-700'
+                }`}>
+                  Cost Risk: {analysis.riskLevel}
+                </span>
+              </div>
+              <p className={`text-sm ${
+                analysis.riskLevel === 'High'
+                  ? 'text-red-700'
+                  : analysis.riskLevel === 'Medium'
+                  ? 'text-amber-700'
+                  : 'text-green-700'
+              }`}>{analysis.riskReason}</p>
+            </div>
+
+            {/* Summary */}
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-6">
+              <p className="text-sm font-medium text-gray-600 mb-1">Summary</p>
+              <p className="text-gray-700 text-sm">{analysis.summary}</p>
             </div>
 
             <div className="space-y-4">

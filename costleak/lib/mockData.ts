@@ -39,6 +39,8 @@ export const EXAMPLE_PROMPTS = [
 
 export const MOCK_RECOMMENDATIONS = {
   summary: "Your implementation has several patterns that will lead to excessive API usage and costs. Here are specific changes to reduce your spending.",
+  riskLevel: "High" as const,
+  riskReason: "Your description suggests repeated real-time API calls with no caching or debouncing, which can generate high usage costs very quickly.",
   recommendations: [
     {
       issue: "API called on every user action without debouncing",

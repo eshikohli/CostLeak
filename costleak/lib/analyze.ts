@@ -1,6 +1,8 @@
 import OpenAI from 'openai'
 import { MOCK_RECOMMENDATIONS } from './mockData'
 
+export type RiskLevel = 'Low' | 'Medium' | 'High'
+
 export interface Recommendation {
   issue: string
   recommendedFix: string
@@ -13,6 +15,8 @@ export interface Recommendation {
 
 export interface AnalysisResult {
   summary: string
+  riskLevel: RiskLevel
+  riskReason: string
   recommendations: Recommendation[]
 }
 
@@ -32,6 +36,8 @@ Focus on patterns like:
 Return ONLY a JSON object with this exact shape:
 {
   "summary": "A short 1-2 sentence explanation of the main cost issues",
+  "riskLevel": "High",
+  "riskReason": "One sentence explaining why this risk level was chosen, e.g. 'Your description suggests real-time API calls on every user action with no caching, which can generate very high usage quickly.'",
   "recommendations": [
     {
       "issue": "Specific inefficient pattern found",
@@ -44,6 +50,11 @@ Return ONLY a JSON object with this exact shape:
     }
   ]
 }
+
+For riskLevel, choose exactly one of: "Low", "Medium", or "High".
+- High: repeated real-time calls with no caching, every-keystroke triggering, very frequent polling, identical requests sent repeatedly at scale
+- Medium: some unnecessary repeated calls, moderate over-fetching, infrequent polling, lack of batching
+- Low: minor inefficiencies, low-frequency usage, some optimization already present
 
 For the cost estimates:
 - Use simple rounded dollar amounts like '$20/mo', '$5/mo', '$150/mo'
@@ -132,6 +143,52 @@ function heuristicEstimate(description: string, issue: string): CostEstimate {
   }
 }
 
+function heuristicRisk(description: string): { riskLevel: RiskLevel; riskReason: string } {
+  const text = description.toLowerCase()
+
+  const isHighFrequency =
+    /keystroke|every key|every char|each character|on every (type|keystroke|input|click)/.test(text)
+  const isFrequentPolling =
+    /every [1-5] second|poll.{0,20}(second|frequent)|setinterval.{0,30}(1000|2000|3000|5000)/.test(text)
+  const isRepeatedWithNoCache =
+    /(repeated|again and again|every time|each time|always).{0,60}(no cach|without cach|don.t cach|not cach)/.test(text) ||
+    /(no cach|without cach|don.t cach|not cach).{0,60}(repeated|again|every time|each time)/.test(text)
+  const isSameCallsRepeatedly =
+    /same (prompt|request|query|call|address).{0,40}(again|repeated|multiple|every)/.test(text) ||
+    /identical (prompt|request|query|call)/.test(text)
+
+  if (isHighFrequency || isFrequentPolling || isRepeatedWithNoCache || isSameCallsRepeatedly) {
+    return {
+      riskLevel: 'High',
+      riskReason:
+        'Your description suggests repeated or real-time API calls with no apparent caching, which can generate high usage costs quickly.',
+    }
+  }
+
+  const isModeratePolling =
+    /poll|every \d+ (second|minute)|interval|check.{0,20}(status|update)/.test(text)
+  const isOverfetch =
+    /full (dataset|catalog|object|list|response)|all (fields|data)|every (field|column|page refresh|page load)/.test(text)
+  const isRepeatedCalls =
+    /repeated|again and again|every time|each time|every visit|every page/.test(text)
+  const isMissingCache =
+    /no cach|without cach|don.t cach|not cach|missing cach/.test(text)
+
+  if (isModeratePolling || isOverfetch || isRepeatedCalls || isMissingCache) {
+    return {
+      riskLevel: 'Medium',
+      riskReason:
+        'Your description includes some inefficient patterns that could lead to unnecessary API usage over time, but the overall impact is moderate.',
+    }
+  }
+
+  return {
+    riskLevel: 'Low',
+    riskReason:
+      'Your description suggests a limited-frequency usage pattern. There may be small improvements available, but overall cost risk appears low.',
+  }
+}
+
 function applyEstimateFallbacks(
   recommendations: Partial<Recommendation>[],
   description: string
@@ -184,9 +241,24 @@ Please analyze this and return your structured recommendations as JSON.`
   const content = response.choices[0].message.content
   if (!content) throw new Error('Empty response from OpenAI')
 
-  const raw = JSON.parse(content) as { summary: string; recommendations: Partial<Recommendation>[] }
+  const raw = JSON.parse(content) as {
+    summary: string
+    riskLevel?: string
+    riskReason?: string
+    recommendations: Partial<Recommendation>[]
+  }
+
+  const validLevels: RiskLevel[] = ['Low', 'Medium', 'High']
+  const llmRiskLevel = validLevels.includes(raw.riskLevel as RiskLevel)
+    ? (raw.riskLevel as RiskLevel)
+    : null
+
+  const fallbackRisk = heuristicRisk(description)
+
   return {
     summary: raw.summary,
+    riskLevel: llmRiskLevel ?? fallbackRisk.riskLevel,
+    riskReason: raw.riskReason?.trim() || fallbackRisk.riskReason,
     recommendations: applyEstimateFallbacks(raw.recommendations ?? [], description),
   }
 }
