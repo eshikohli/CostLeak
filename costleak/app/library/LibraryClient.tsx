@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useState, useEffect } from 'react'
 
 interface SavedItem {
   id: string
@@ -21,6 +22,9 @@ interface SavedItem {
   }
 }
 
+const CATEGORIES = ['All', 'OpenAI', 'Google Maps', 'Cloud / Other'] as const
+type Category = (typeof CATEGORIES)[number]
+
 export default function LibraryClient({
   userEmail,
   saved,
@@ -29,6 +33,32 @@ export default function LibraryClient({
   saved: SavedItem[]
 }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  const initialCategory = (): Category => {
+    const param = searchParams.get('category')
+    return (CATEGORIES as readonly string[]).includes(param ?? '')
+      ? (param as Category)
+      : 'All'
+  }
+
+  const [activeCategory, setActiveCategory] = useState<Category>(initialCategory)
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (activeCategory === 'All') {
+      params.delete('category')
+    } else {
+      params.set('category', activeCategory)
+    }
+    const qs = params.toString()
+    router.replace(`/library${qs ? `?${qs}` : ''}`, { scroll: false })
+  }, [activeCategory])
+
+  const filtered =
+    activeCategory === 'All'
+      ? saved
+      : saved.filter((item) => item.analysis.apiCategory === activeCategory)
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' })
@@ -57,13 +87,16 @@ export default function LibraryClient({
       </nav>
 
       <main className="max-w-4xl mx-auto px-6 py-10">
-        <div className="mb-8 flex items-center justify-between">
+        {/* Header row */}
+        <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 mb-1">My Library</h1>
             <p className="text-gray-500">
-              {saved.length === 0
-                ? 'No saved recommendations yet.'
-                : `${saved.length} saved recommendation${saved.length !== 1 ? 's' : ''}`}
+              {filtered.length === 0
+                ? activeCategory === 'All'
+                  ? 'No saved recommendations yet.'
+                  : `No saved recommendations for ${activeCategory}.`
+                : `${filtered.length} saved recommendation${filtered.length !== 1 ? 's' : ''}${activeCategory !== 'All' ? ` in ${activeCategory}` : ''}`}
             </p>
           </div>
           <Link
@@ -74,16 +107,47 @@ export default function LibraryClient({
           </Link>
         </div>
 
-        {saved.length === 0 ? (
+        {/* Category filter */}
+        <div className="flex gap-2 mb-6 flex-wrap">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`text-sm px-4 py-1.5 rounded-lg font-medium transition-colors border ${
+                activeCategory === cat
+                  ? 'bg-gray-900 text-white border-gray-900'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400 hover:text-gray-900'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* Results */}
+        {filtered.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center shadow-sm">
-            <p className="text-gray-400 mb-4">No saved recommendations yet.</p>
-            <Link href="/dashboard" className="text-sm text-gray-900 underline">
-              Analyze your API usage to get started
-            </Link>
+            <p className="text-gray-400 mb-4">
+              {activeCategory === 'All'
+                ? 'No saved recommendations yet.'
+                : `No saved recommendations for ${activeCategory}.`}
+            </p>
+            {activeCategory === 'All' ? (
+              <Link href="/dashboard" className="text-sm text-gray-900 underline">
+                Analyze your API usage to get started
+              </Link>
+            ) : (
+              <button
+                onClick={() => setActiveCategory('All')}
+                className="text-sm text-gray-900 underline"
+              >
+                Show all categories
+              </button>
+            )}
           </div>
         ) : (
           <div className="space-y-4">
-            {saved.map((item) => (
+            {filtered.map((item) => (
               <div key={item.id} className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-1 rounded">

@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
@@ -16,5 +17,9 @@ export default async function LibraryPage() {
     orderBy: { createdAt: 'desc' },
   })
 
-  return <LibraryClient userEmail={session.email} saved={saved} />
+  return (
+    <Suspense>
+      <LibraryClient userEmail={session.email} saved={saved} />
+    </Suspense>
+  )
 }
